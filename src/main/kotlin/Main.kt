@@ -11,10 +11,12 @@ import java.util.*
 fun main() {
 
     val topicName = "test-topic"
+    
+    val brokerUrl = "http://localhost:9092"
 
-    creatTopic(topicName)
+    creatTopic(topicName = topicName, brokerUrl = brokerUrl)
 
-    val producer = createProducer()
+    val producer = createProducer(brokerUrl = brokerUrl)
 
     val record = ProducerRecord(topicName, "tests", "Hello, Kafka!")
 
@@ -32,10 +34,10 @@ fun main() {
 
 }
 
-fun createProducer(): KafkaProducer<String, String> {
+fun createProducer(brokerUrl: String): KafkaProducer<String, String> {
 
     val props = Properties().apply {
-        put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
+        put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrl)
         put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java)
         put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java)
         put(ProducerConfig.ACKS_CONFIG, "all")
@@ -44,9 +46,10 @@ fun createProducer(): KafkaProducer<String, String> {
     return KafkaProducer(props)
 }
 
-fun creatTopic(topicName: String, numPartitions: Int = 1, replicationFactor: Short = 1) {
+fun creatTopic(topicName: String, brokerUrl: String, numPartitions: Int = 1, replicationFactor: Short = 1) {
+
     val props = Properties().apply {
-        put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
+        put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrl)
     }
 
     val adminClient = AdminClient.create(props)
