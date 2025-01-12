@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.*
+import org.springframework.kafka.support.serializer.JsonSerializer
+import org.test.kafka_test_application.dto.TestJson
 
 @Configuration
 @EnableKafka
@@ -20,38 +22,38 @@ class KafkaConfig {
 
 
     @Bean
-    fun consumerFactory(): ConsumerFactory<String, String> {
+    fun consumerFactory(): ConsumerFactory<String, TestJson> {
         val props = mutableMapOf<String, Any>()
         props[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = "localhost:9092"
         props[ConsumerConfig.GROUP_ID_CONFIG] = "test-group"
         props[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
-        props[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
+        props[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = JsonSerializer<TestJson>().javaClass
 
         return DefaultKafkaConsumerFactory(props)
     }
 
     @Bean
-    fun consumer2Factory(): ConsumerFactory<String, String> {
+    fun consumer2Factory(): ConsumerFactory<String, TestJson> {
         val props = mutableMapOf<String, Any>()
         props[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = "localhost:9092"
         props[ConsumerConfig.GROUP_ID_CONFIG] = "test-group"
         props[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
-        props[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
+        props[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = JsonSerializer<TestJson>().javaClass
 
         return DefaultKafkaConsumerFactory(props)
     }
 
     @Bean
-    fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
-        val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
+    fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, TestJson> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, TestJson>()
         factory.consumerFactory = consumerFactory()
         factory.setConcurrency(1)
         return factory
     }
 
     @Bean
-    fun kafkaListener2ContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
-        val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
+    fun kafkaListener2ContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, TestJson> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, TestJson>()
         factory.consumerFactory = consumer2Factory()
         factory.setConcurrency(1)
         return factory
@@ -61,26 +63,26 @@ class KafkaConfig {
 
     @Bean
     @ConditionalOnBean(ConsumerFactory::class)
-    fun batchListenerContainerFactory(consumerFactory: ConsumerFactory<String, String>): ConcurrentKafkaListenerContainerFactory<String, String> {
-        val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
+    fun batchListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, TestJson> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, TestJson>()
         factory.consumerFactory = consumerFactory()
         factory.isBatchListener = true
         return factory
     }
 
     @Bean
-    fun producerFactory(): ProducerFactory<String, String> {
+    fun producerFactory(): ProducerFactory<String, TestJson> {
         val props = mutableMapOf<String, Any>()
         props[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = "localhost:9092"
         props[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
-        props[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
+        props[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = JsonSerializer<TestJson>().javaClass
 
         return DefaultKafkaProducerFactory(props)
     }
 
     @Bean
     @ConditionalOnBean(ProducerFactory::class)
-    fun kafkaTemplate(producerFactory: ProducerFactory<String, String>) : KafkaTemplate<String, String> {
+    fun kafkaTemplate(producerFactory: ProducerFactory<String, TestJson>) : KafkaTemplate<String, TestJson> {
         val kafkaTemplate = KafkaTemplate(producerFactory)
 
         kafkaTemplate.transactionIdPrefix = "tx-oldaim-"
